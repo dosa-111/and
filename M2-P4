@@ -1,1 +1,514 @@
+======================================================================
+A. Develop an Android application implementing SQLite database CRUD operations.
+======================================================================
+ProjectName: SQLLiteCRUDDemo
+File Name: activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:orientation="vertical"
+   android:padding="20dp">
+   <EditText
+       android:id="@+id/etName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:hint="Enter Name"/>
+   <EditText
+       android:id="@+id/etNewName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:hint="Enter New Name"/>
+   <Button
+       android:id="@+id/btnInsert"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+      android:text="Insert"/>
+  <Button
+      android:id="@+id/btnView"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="View Data"/>
+  <Button
+      android:id="@+id/btnUpdate"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="Update"/>
+  <Button
+      android:id="@+id/btnDelete"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="Delete"/>
+  <TextView
+      android:id="@+id/txtResult" android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:textSize="18sp"
+       android:paddingTop="20dp"/>
+</LinearLayout>
+
+Create a Database Helper Class.
+Right Click:
+java package → New → Java Class
+Class Name: DBHelper
+
+package com.example.sqllitecruddemo;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DBHelper extends SQLiteOpenHelper {
+
+   public DBHelper(Context context) {
+        super(context, "StudentDB", null, 1);
+   }
+
+   @Override
+   public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE student(name TEXT)");
+   }
+
+   @Override
+   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS student");
+    onCreate(db);
+}
+
+// Insert
+public void insertData(String name) {
+    SQLiteDatabase db = this.getWritableDatabase();
+
+    ContentValues values = new ContentValues();
+    values.put("name", name);
+
+    db.insert("student", null, values);
+}
+
+// View
+public String viewData() {
+    SQLiteDatabase db = this.getReadableDatabase();
+
+    Cursor cursor = db.rawQuery("SELECT * FROM student", null);
+
+    StringBuilder data = new StringBuilder();
+
+    while (cursor.moveToNext()) {
+          data.append(cursor.getString(0)).append("\n");
+    }
+
+    cursor.close();
+    return data.toString();
+}
+
+// Update
+public void updateData(String oldName, String newName) {
+    SQLiteDatabase db = this.getWritableDatabase();
+
+    ContentValues values = new ContentValues();
+    values.put("name", newName);
+
+    db.update(
+            "student",
+            values,
+            "name=?",
+            new String[]{oldName}
+    );
+}
+
+// Delete
+public void deleteData(String name) {
+    SQLiteDatabase db = this.getWritableDatabase();
+
+    db.delete(
+            "student",
+            "name=?",
+                new String[]{name}
+        );
+    }
+}
+
+
+MainActivity.java
+
+package com.example.sqllitecruddemo;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText etName, etNewName;
+    TextView txtResult;
+
+    Button btnInsert, btnView, btnUpdate, btnDelete;
+
+    DBHelper dbHelper;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+   super.onCreate(savedInstanceState);
+   setContentView(R.layout.activity_main);
+
+   etName = findViewById(R.id.etName);
+   etNewName = findViewById(R.id.etNewName);
+   txtResult = findViewById(R.id.txtResult);
+
+   btnInsert = findViewById(R.id.btnInsert);
+   btnView = findViewById(R.id.btnView);
+   btnUpdate = findViewById(R.id.btnUpdate);
+   btnDelete = findViewById(R.id.btnDelete);
+
+   dbHelper = new DBHelper(this);
+
+   // Insert
+   btnInsert.setOnClickListener(v -> {
+
+       String name = etName.getText().toString();
+
+       dbHelper.insertData(name);
+
+       Toast.makeText(
+               this,
+               "Data Inserted",
+             Toast.LENGTH_SHORT
+      ).show();
+});
+
+// View
+btnView.setOnClickListener(v -> {
+
+      String data = dbHelper.viewData();
+
+      txtResult.setText(data);
+});
+
+// Update
+btnUpdate.setOnClickListener(v -> {
+
+      String oldName = etName.getText().toString();
+      String newName = etNewName.getText().toString();
+
+      dbHelper.updateData(oldName, newName);
+
+      Toast.makeText(
+             this,
+             "Data Updated",
+             Toast.LENGTH_SHORT
+      ).show();
+});
+        // Delete
+        btnDelete.setOnClickListener(v -> {
+
+              String name = etName.getText().toString();
+
+              dbHelper.deleteData(name);
+
+              Toast.makeText(
+                     this,
+                     "Data Deleted",
+
+######################################################################
+Toast.LENGTH_SHORT
+######################################################################
+              ).show();
+        });
+    }
+}
+
+======================================================================
+B. Develop an Android application integrating SQLite with ListView or RecyclerView.
+======================================================================
+
+Project Name : SQLiteCRUDDemo
+activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:orientation="vertical"
+   android:padding="20dp">
+
+   <EditText
+       android:id="@+id/etName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:hint="Enter Name" />
+
+   <Button
+       android:id="@+id/btnInsert"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Insert" />
+   <Button
+       android:id="@+id/btnView"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="View Data" />
+   <ListView
+       android:id="@+id/listView"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content" />
+</LinearLayout>
+
+Create New Java Class in Package Folder
+Name as: DBHelper
+
+package com.example.sqlitecruddemo;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
+
+public class DBHelper extends SQLiteOpenHelper {
+
+   public DBHelper(Context context) {
+    super(context, "StudentDB", null, 1);
+}
+
+@Override
+public void onCreate(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE student(name TEXT)");
+}
+
+@Override
+public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    // Database upgrade code goes here
+}
+
+// Insert Data
+public void insertData(String name) {
+    SQLiteDatabase db = this.getWritableDatabase();
+
+    ContentValues values = new ContentValues();
+    values.put("name", name);
+
+    db.insert("student", null, values);
+}
+
+// Get All Data
+public ArrayList<String> getData() {
+        ArrayList<String> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT name FROM student", null);
+
+        while (cursor.moveToNext()) {
+            list.add(cursor.getString(0));
+        }
+
+        cursor.close();
+
+        return list;
+    }
+}
+
+
+MainActivity.java
+
+package com.example.sqlitecruddemo;
+
+import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+
+  EditText etName;
+  Button btnInsert, btnView;
+  ListView listView;
+
+  DBHelper dbHelper;
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+
+      setContentView(R.layout.activity_main);
+
+      etName = findViewById(R.id.etName);
+      btnInsert = findViewById(R.id.btnInsert);
+      btnView = findViewById(R.id.btnView);
+      listView = findViewById(R.id.listView);
+
+      dbHelper = new DBHelper(this);
+// Insert Data
+btnInsert.setOnClickListener(v -> {
+
+      String name = etName.getText().toString();
+
+      dbHelper.insertData(name);
+
+      Toast.makeText(
+             this,
+             "Data Inserted",
+             Toast.LENGTH_SHORT
+      ).show();
+
+      etName.setText("");
+});
+
+// View Data
+btnView.setOnClickListener(v -> {
+
+      ArrayList<String> list = dbHelper.getData();
+
+      ArrayAdapter<String> adapter = new ArrayAdapter<>(
+             this,
+             android.R.layout.simple_list_item_1,
+             list
+      );
+              listView.setAdapter(adapter);
+        });
+    }
+}
+
+======================================================================
+C. Develop an Android application to fetch and parse JSON data from a web
+======================================================================
+PROJECTNAME: JSONDEMO
+Add Internet Permission.
+AndroidManifest.xml
+Add following above: <application> tag
+<uses-permission android:name="android.permission.INTERNET"/>
+
+activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:orientation="vertical"
+   android:padding="20dp">
+
+   <Button
+       android:id="@+id/btnFetch"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Fetch JSON Data" />
+
+   <TextView
+       android:id="@+id/txtResult"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:textSize="18sp"
+       android:textColor="#000000" />
+
+</LinearLayout>
+
+MainActivity.java
+package com.example.jsondemo;
+package com.example.jsondemo;
+
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
+import androidx.appcompat.app.AppCompatActivity;
+public class MainActivity extends AppCompatActivity {
+
+  Button btnFetch;
+  TextView txtResult;
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+
+      setContentView(R.layout.activity_main);
+
+      btnFetch = findViewById(R.id.btnFetch);
+      txtResult = findViewById(R.id.txtResult);
+
+      btnFetch.setOnClickListener(v -> {
+            fetchData();
+      });
+  }
+  private void fetchData() {
+
+      new Thread(() -> {
+
+          try {
+
+              // Web Service URL
+               URL url = new
+URL("https://jsonplaceholder.typicode.com/posts/1");
+
+              HttpURLConnection connection =
+                      (HttpURLConnection) url.openConnection();
+
+              connection.setRequestMethod("GET");
+
+              connection.setRequestMethod("GET");
+
+               BufferedReader reader = new BufferedReader(new
+                   InputStreamReader(
+                               connection.getInputStream()
+        )
+);
+
+StringBuilder result = new StringBuilder();
+
+String line;
+
+while ((line = reader.readLine()) != null) {
+     result.append(line);
+}
+
+reader.close();
+
+// JSON Parsing
+JSONObject jsonObject =
+        new JSONObject(result.toString());
+
+String title =
+        jsonObject.getString("title");
+    String body =
+               jsonObject.getString("body");
+
+    // Display Data
+    runOnUiThread(() -> {
+
+          txtResult.setText(
+                  "Title: " + title +
+                          "\n\nBody: " + body
+          );
+    });
+
+    connection.disconnect();
+
+} catch (Exception e) {
+    e.printStackTrace();
+    runOnUiThread(() -> {
+          txtResult.setText(
+                  "Error: " + e.getMessage()
+          );
+    });
+}
+        }).start();
+    }
+}
 
